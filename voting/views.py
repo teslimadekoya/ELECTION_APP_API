@@ -16,11 +16,21 @@ class CastVoteView(APIView):
 
     def post(self, request):
         serializer = VoteSerializer(data=request.data)
+        
         if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'vote has been counted', 'data': serializer.data}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            election_id = serializer.validated_data['election']
+            candidate_id = serializer.validated_data['candidate']
 
+            if election_id == candidate_id:
+                return Response({'error': 'You cannot vote for yourself'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if Vote.objects.filter(voter=request.user, election_id=election_id).exists():
+                return Response({'error': 'You have already voted'}, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer.save(voter=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class VoteListView(APIView):
@@ -31,6 +41,7 @@ class VoteListView(APIView):
         serializer = VoteSerializer(vote, many=True)
         return Response(serializer.data)
     
+class VoteDetailView(APIView):
     def get(self, request, id):
         vote = get_object_or_404(Vote, id=id)
         serializer = VoteSerializer(vote)
