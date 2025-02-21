@@ -17,6 +17,7 @@ from django.urls import path
 from rest_framework import generics
 from .models import User
 from .serializers import UserSerializer
+from users.permissions import IsAdmin,IsVoter, IsBoth
 
 
 # users/urls.py
@@ -29,11 +30,12 @@ from .serializers import UserSerializer
 
 # Create your views here.
 class UserRegisterView(generics.CreateAPIView):
+    permission_classes = [IsBoth]
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
 class UserRegistrationView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsBoth]
 
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -43,7 +45,7 @@ class UserRegistrationView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class UserLoginView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsBoth]
 
     def post (self, request):
         data = request.data

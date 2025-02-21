@@ -5,11 +5,11 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .models import Election, Candidate
 from .serializers import ElectionSerializer, CandidateSerializer
-from users.permissions import IsAdmin, IsVoter
+from users.permissions import IsAdmin, IsVoter, IsBoth
 
 # GET /elections/: View a list of all elections
 class ElectionListView(APIView):
-    permission_classes = [IsAdmin]  # No authentication required for viewing election list
+    permission_classes = [IsBoth]  # No authentication required for viewing election list
 
     def get(self, request):
         elections = Election.objects.all().order_by('-start_date')
@@ -18,7 +18,9 @@ class ElectionListView(APIView):
 
 # POST /elections/: Create a new election (admin only)
 class ElectionCreateView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+    permission_classes = [IsAdmin]
+
+      # Ensure the user is authenticated
 
     def post(self, request):
         # Ensure the user is an admin
@@ -33,7 +35,7 @@ class ElectionCreateView(APIView):
 
 # GET /elections/<id>/: View detailed information about a specific election (voter or admin)
 class ElectionDetailView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+    permission_classes = [IsAdmin]  # Ensure the user is authenticated
 
     def get(self, request, election_id):
         election = get_object_or_404(Election, pk=election_id)
@@ -42,7 +44,7 @@ class ElectionDetailView(APIView):
 
 # PATCH /elections/<id>/: Update election details (admin only)
 class ElectionUpdateView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+    permission_classes = [IsAdmin]  # Ensure the user is authenticated
 
     def patch(self, request, election_id):
         # Ensure the user is an admin
@@ -58,7 +60,8 @@ class ElectionUpdateView(APIView):
 
 # DELETE /elections/<id>/: Delete an election (admin only)
 class ElectionDeleteView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+    permission_classes = [IsAdmin]  # Ensure the user is authenticated
+    
 
     def delete(self, request, election_id):
         # Ensure the user is an admin
@@ -71,7 +74,7 @@ class ElectionDeleteView(APIView):
 
 # POST /elections/<id>/candidates/: Add candidates to an election (admin only)
 class CandidateCreateView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+    permission_classes = [IsAdmin]  # Ensure the user is authenticated
 
     def post(self, request, election_id):
         # Ensure the user is an admin
@@ -89,7 +92,7 @@ class CandidateCreateView(APIView):
 
 # GET /elections/<id>/candidates/: View candidates in an election (open to everyone)
 class CandidateListView(APIView):
-    permission_classes = []  # No authentication required for viewing candidates
+    permission_classes = [IsBoth]  
 
     def get(self, request, pk):
         candidate = Candidate.objects.all()

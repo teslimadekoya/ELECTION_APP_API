@@ -11,7 +11,7 @@ from users.permissions import IsAdmin,IsVoter, IsBoth
 
 
 class CastVoteView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsVoter]
 
 
     def post(self, request):
@@ -34,7 +34,7 @@ class CastVoteView(APIView):
 
 
 class VoteListView(APIView):
-    # permission_classes = [IsAdmin]  # No authentication required for viewing election list
+    permission_classes = [IsAdmin]  
 
     def get(self, request):
         vote = Vote.objects.all()
@@ -42,6 +42,7 @@ class VoteListView(APIView):
         return Response(serializer.data)
     
 class VoteDetailView(APIView):
+    permission_classes = [IsAdmin]
     def get(self, request, id):
         vote = get_object_or_404(Vote, id=id)
         serializer = VoteSerializer(vote)
@@ -62,6 +63,7 @@ class ElectionResultView(APIView):
         return [IsBoth()]
 
     def post(self, request, election_id):
+        permission_classes = [IsAdmin]
         # Only admins can publish results
         if not request.user.is_staff:
             return Response({"error": "Permission denied. Only admins can publish results."}, status=status.HTTP_403_FORBIDDEN)
@@ -75,6 +77,7 @@ class ElectionResultView(APIView):
         return Response({"election": election.election_type, "results": results, "status": "Published"}, status=status.HTTP_201_CREATED)
 
     def get(self, request, election_id):
+        permission_classes = [IsBoth]
         election = get_object_or_404(Election, id=election_id)
 
         # Fetch vote counts
